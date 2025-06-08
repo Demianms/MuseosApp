@@ -36,6 +36,12 @@ import coil.compose.AsyncImage
 import com.demian.chamus.viewmodel.MuseumViewModel
 import androidx.compose.ui.layout.ContentScale
 
+// Importaciones necesarias para SwipeRefresh
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+
 private val ColorFondoApp = Color(0xFFE8F0F7)
 private val ColorFondoEncabezado = Color(0xFFFFFFFF)
 private val ColorAzulOscuroPrincipal = Color(0xFF003366)
@@ -55,118 +61,138 @@ fun ListMuseumsScreen(viewModel: MuseumViewModel = viewModel()) {
     val isLoading = viewModel.isLoading.collectAsState().value
     val error = viewModel.error.collectAsState().value
 
+    // 1. Crear el estado de SwipeRefresh
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isLoading)
+    // Usamos un rememberCoroutineScope para lanzar la recarga
+    val coroutineScope = rememberCoroutineScope()
+
+
     Scaffold(
         containerColor = ColorFondoApp,
         contentColor = ColorTextoSobreClaro,
         content = { innerPadding ->
-            Column(
+            // 2. Envolver el contenido con SwipeRefresh
+            SwipeRefresh(
+                state = swipeRefreshState,
+                onRefresh = {
+                    // Cuando el usuario tira para recargar, llamamos a la función de recarga del ViewModel
+                    // Es buena práctica envolver esto en un coroutineScope
+                    coroutineScope.launch {
+                        viewModel.loadMuseums() // Asume que tienes una función para recargar los datos
+                    }
+                },
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .verticalScroll(rememberScrollState())
             ) {
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .background(ColorFondoEncabezado)
-                        .padding(16.dp)
+                        .fillMaxSize() // Asegúrate de que la columna interna también llene el espacio
+                        .verticalScroll(rememberScrollState())
                 ) {
-                    Text(
-                        text = "Encuentra tu museo favorito",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = ColorAzulOscuroPrincipal,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth()
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(ColorFondoEncabezado)
+                            .padding(16.dp)
                     ) {
-                        Filter("Arte", ColorAzulOscuroPrincipal, viewModel)
-                        Spacer(Modifier.width(8.dp))
-                        Filter("Historia", ColorAzulMedioEtiqueta, viewModel)
-                        Spacer(Modifier.width(8.dp))
-                        Filter("Cultura", ColorAzulClaroEtiqueta, viewModel)
-                        Spacer(Modifier.width(8.dp))
-                        Filter("Todos", ColorAzulMuyOscuroEtiqueta, viewModel)
+                        Text(
+                            text = "Encuentra tu museo favorito",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = ColorAzulOscuroPrincipal,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Filter("Arte", ColorAzulOscuroPrincipal, viewModel)
+                            Spacer(Modifier.width(8.dp))
+                            Filter("Historia", ColorAzulMedioEtiqueta, viewModel)
+                            Spacer(Modifier.width(8.dp))
+                            Filter("Cultura", ColorAzulClaroEtiqueta, viewModel)
+                            Spacer(Modifier.width(8.dp))
+                            Filter("Todos", ColorAzulMuyOscuroEtiqueta, viewModel)
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(top = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    when {
-                        isLoading -> {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(200.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        }
-                        error != null -> {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(200.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = error,
-                                    color = Color.Red,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
-                        museums.isEmpty() -> {
-                            Surface(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(80.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                color = ColorAzulCieloInfo,
-                                contentColor = ColorTextoSobreOscuro
-                            ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .padding(top = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        when {
+                            isLoading -> {
                                 Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier.padding(16.dp)
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(200.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
+                            error != null -> {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(200.dp),
+                                    contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = "No hay museos disponibles",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = ColorTextoSobreOscuro
+                                        text = error,
+                                        color = Color.Red,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                            museums.isEmpty() -> {
+                                Surface(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(80.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = ColorAzulCieloInfo,
+                                    contentColor = ColorTextoSobreOscuro
+                                ) {
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.padding(16.dp)
+                                    ) {
+                                        Text(
+                                            text = "No hay museos disponibles",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = ColorTextoSobreOscuro
+                                        )
+                                    }
+                                }
+                            }
+                            else -> {
+                                museums.forEach { museum ->
+                                    MuseumCard(
+                                        name = museum.name,
+                                        isActive = museum.estado == "active",
+                                        imageUrl = museum.imageUrl,
+                                        description = museum.descripcion,
+                                        price = museum.precio,
+                                        numberOfRooms = museum.numberOfRooms,
+                                        onClick = { /* Aquí podrías navegar a los detalles del museo */ }
                                     )
                                 }
                             }
                         }
-                        else -> {
-                            museums.forEach { museum ->
-                                MuseumCard(
-                                    name = museum.name,
-                                    isActive = museum.estado == "active",
-                                    imageUrl = museum.imageUrl,
-                                    description = museum.descripcion,
-                                    price = museum.precio,
-                                    numberOfRooms = museum.numberOfRooms,
-                                    onClick = { }
-                                )
-                            }
-                        }
-                    }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
         }

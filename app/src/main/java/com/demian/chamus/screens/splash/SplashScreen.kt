@@ -15,12 +15,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.demian.chamus.R
 import kotlinx.coroutines.delay
-
 
 private val ColorFondoSplash = Color(0xFF000000)
 private val ColorTextoSplash = Color(0xFF8A2BE2)
@@ -34,11 +34,26 @@ fun SplashScreen(navController: NavController) {
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(ColorFondoSplash),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
+        // Imagen de fondo
+        Image(
+            painter = painterResource(id = R.drawable.chamus_fondo),
+            contentDescription = "Background Image",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        // Capa oscura semitransparente
+        // Puedes ajustar el valor alpha (el último parámetro) para cambiar la intensidad de la oscuridad
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f)) // 0.5f es 50% de opacidad
+        )
+
+        // Contenido principal (logo y CircularProgressIndicator)
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
