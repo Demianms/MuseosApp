@@ -16,12 +16,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,7 +31,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.demian.chamus.viewmodel.MuseumViewModel
 import androidx.compose.ui.layout.ContentScale
 
 private val ColorFondoApp = Color(0xFFE8F0F7)
@@ -47,13 +50,10 @@ private val ColorTextoSobreClaro = Color(0xFF000000)
 private val ColorAzulCieloInfo = Color(0xFF87CEEB)
 
 @Composable
-fun ListMuseumsScreen() {
-    val museums = remember {
-        listOf(
-            MuseumData("Museo Nacional de Arte", false, "https://media.admagazine.com/photos/618a6312532cae908aaf2ba5/master/w_1600%2Cc_limit/78769.jpg"),
-            MuseumData("Museo de Historia Natural", true, "https://media.admagazine.com/photos/618a6312532cae908aaf2ba5/master/w_1600%2Cc_limit/78769.jpg"),
-        )
-    }
+fun ListMuseumsScreen(viewModel: MuseumViewModel = viewModel()) {
+    val museums = viewModel.museums.collectAsState().value
+    val isLoading = viewModel.isLoading.collectAsState().value
+    val error = viewModel.error.collectAsState().value
 
     Scaffold(
         containerColor = ColorFondoApp,
@@ -86,13 +86,13 @@ fun ListMuseumsScreen() {
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Filter("Arte", ColorAzulOscuroPrincipal)
+                        Filter("Arte", ColorAzulOscuroPrincipal, viewModel)
                         Spacer(Modifier.width(8.dp))
-                        Filter("Historia", ColorAzulMedioEtiqueta)
+                        Filter("Historia", ColorAzulMedioEtiqueta, viewModel)
                         Spacer(Modifier.width(8.dp))
-                        Filter("Cultura", ColorAzulClaroEtiqueta)
+                        Filter("Cultura", ColorAzulClaroEtiqueta, viewModel)
                         Spacer(Modifier.width(8.dp))
-                        Filter("Todos", ColorAzulMuyOscuroEtiqueta)
+                        Filter("Todos", ColorAzulMuyOscuroEtiqueta, viewModel)
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -105,34 +105,64 @@ fun ListMuseumsScreen() {
                         .padding(top = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    museums.forEach { museum ->
-                        MuseumCard(
-                            name = museum.name,
-                            isActive = museum.isActive,
-                            imageUrl = museum.imageUrl,
-                            onClick = { }
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(80.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        color = ColorAzulCieloInfo,
-                        contentColor = ColorTextoSobreOscuro
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Text(
-                                text = "No hay más museos por mostrar",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = ColorTextoSobreOscuro
-                            )
+                    when {
+                        isLoading -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                        error != null -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = error,
+                                    color = Color.Red,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                        museums.isEmpty() -> {
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(80.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                color = ColorAzulCieloInfo,
+                                contentColor = ColorTextoSobreOscuro
+                            ) {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier.padding(16.dp)
+                                ) {
+                                    Text(
+                                        text = "No hay museos disponibles",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = ColorTextoSobreOscuro
+                                    )
+                                }
+                            }
+                        }
+                        else -> {
+                            museums.forEach { museum ->
+                                MuseumCard(
+                                    name = museum.name,
+                                    isActive = museum.estado == "active",
+                                    imageUrl = museum.imageUrl,
+                                    description = museum.descripcion,
+                                    price = museum.precio,
+                                    numberOfRooms = museum.numberOfRooms,
+                                    onClick = { }
+                                )
+                            }
                         }
                     }
 
@@ -143,17 +173,14 @@ fun ListMuseumsScreen() {
     )
 }
 
-data class MuseumData(
-    val name: String,
-    val isActive: Boolean,
-    val imageUrl: String? = null
-)
-
 @Composable
 fun MuseumCard(
     name: String,
     isActive: Boolean,
     imageUrl: String?,
+    description: String,
+    price: Double,
+    numberOfRooms: Int,
     onClick: () -> Unit
 ) {
     val cardBackgroundColor = if (isActive) ColorAzulOscuroPrincipal else ColorGrisTarjetaInactiva
@@ -163,7 +190,7 @@ fun MuseumCard(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp)
+            .height(250.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         shadowElevation = 4.dp
@@ -191,14 +218,15 @@ fun MuseumCard(
                 )
             }
 
-
-            Box(
-                modifier = Modifier.fillMaxSize()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Box(
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(12.dp)
+                        .align(Alignment.End)
                         .clip(RoundedCornerShape(8.dp))
                         .background(statusTagColor)
                         .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -210,27 +238,45 @@ fun MuseumCard(
                         fontWeight = FontWeight.Bold
                     )
                 }
-                Text(
-                    text = name,
-                    color = textColor,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(16.dp)
-                )
+
+                Column {
+                    Text(
+                        text = name,
+                        color = textColor,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = description.take(100) + if (description.length > 100) "..." else "",
+                        color = textColor,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 2
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Precio: $$price",
+                        color = textColor,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "Salas: $numberOfRooms",
+                        color = textColor,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun Filter(text: String, color: Color) {
+fun Filter(text: String, color: Color, viewModel: MuseumViewModel) {
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = ColorFondoEncabezado,
         border = BorderStroke(1.dp, color),
-        modifier = Modifier.clickable { }
+        modifier = Modifier.clickable { viewModel.setFilter(text) }
     ) {
         Text(
             text = text,
