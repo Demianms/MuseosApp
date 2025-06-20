@@ -40,20 +40,21 @@ import androidx.compose.ui.layout.ContentScale
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import androidx.compose.runtime.rememberCoroutineScope
+import com.demian.chamus.ui.theme.ColorAzulCieloInfo
+import com.demian.chamus.ui.theme.ColorAzulClaroEtiqueta
+import com.demian.chamus.ui.theme.ColorAzulMedioEtiqueta
+import com.demian.chamus.ui.theme.ColorAzulMuyOscuroEtiqueta
+import com.demian.chamus.ui.theme.ColorAzulOscuroPrincipal
+import com.demian.chamus.ui.theme.ColorFondoApp
+import com.demian.chamus.ui.theme.ColorFondoEncabezado
+import com.demian.chamus.ui.theme.ColorGrisTarjetaInactiva
+import com.demian.chamus.ui.theme.ColorRojoInactivo
+import com.demian.chamus.ui.theme.ColorTextoSobreClaro
+import com.demian.chamus.ui.theme.ColorTextoSobreOscuro
+import com.demian.chamus.ui.theme.ColorVerdeActivo
 import kotlinx.coroutines.launch
 
-private val ColorFondoApp = Color(0xFFE8F0F7)
-private val ColorFondoEncabezado = Color(0xFFFFFFFF)
-private val ColorAzulOscuroPrincipal = Color(0xFF003366)
-private val ColorGrisTarjetaInactiva = Color(0xFFB0B0B0)
-private val ColorAzulMedioEtiqueta = Color(0xFF4D6D9A)
-private val ColorAzulClaroEtiqueta = Color(0xFF66CCFF)
-private val ColorAzulMuyOscuroEtiqueta = Color(0xFF001A33)
-private val ColorVerdeActivo = Color(0xFF4CAF50)
-private val ColorRojoInactivo = Color(0xFFCC0000)
-private val ColorTextoSobreOscuro = Color(0xFFFFFFFF)
-private val ColorTextoSobreClaro = Color(0xFF000000)
-private val ColorAzulCieloInfo = Color(0xFF87CEEB)
+
 
 @Composable
 fun ListMuseumsScreen(viewModel: MuseumViewModel = viewModel()) {
