@@ -1,5 +1,6 @@
 package com.demian.chamus.screens.museums
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,9 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -25,36 +25,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.demian.chamus.models.Museum
 import com.demian.chamus.viewmodel.MuseumViewModel
-import androidx.compose.ui.layout.ContentScale
-
-// Importaciones necesarias para SwipeRefresh
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import androidx.compose.runtime.rememberCoroutineScope
-import com.demian.chamus.ui.theme.ColorAzulCieloInfo
-import com.demian.chamus.ui.theme.ColorAzulClaroEtiqueta
-import com.demian.chamus.ui.theme.ColorAzulMedioEtiqueta
-import com.demian.chamus.ui.theme.ColorAzulMuyOscuroEtiqueta
-import com.demian.chamus.ui.theme.ColorAzulOscuroPrincipal
-import com.demian.chamus.ui.theme.ColorFondoApp
-import com.demian.chamus.ui.theme.ColorFondoEncabezado
-import com.demian.chamus.ui.theme.ColorGrisTarjetaInactiva
-import com.demian.chamus.ui.theme.ColorRojoInactivo
-import com.demian.chamus.ui.theme.ColorTextoSobreClaro
-import com.demian.chamus.ui.theme.ColorTextoSobreOscuro
-import com.demian.chamus.ui.theme.ColorVerdeActivo
-import kotlinx.coroutines.launch
-
-
 
 @Composable
 fun ListMuseumsScreen(viewModel: MuseumViewModel = viewModel()) {
@@ -62,234 +42,189 @@ fun ListMuseumsScreen(viewModel: MuseumViewModel = viewModel()) {
     val isLoading = viewModel.isLoading.collectAsState().value
     val error = viewModel.error.collectAsState().value
 
-    // 1. Crear el estado de SwipeRefresh
-    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isLoading)
-    // Usamos un rememberCoroutineScope para lanzar la recarga
-    val coroutineScope = rememberCoroutineScope()
-
-
     Scaffold(
-        containerColor = ColorFondoApp,
-        contentColor = ColorTextoSobreClaro,
-        content = { innerPadding ->
-            // 2. Envolver el contenido con SwipeRefresh
-            SwipeRefresh(
-                state = swipeRefreshState,
-                onRefresh = {
-                    // Cuando el usuario tira para recargar, llamamos a la función de recarga del ViewModel
-                    // Es buena práctica envolver esto en un coroutineScope
-                    coroutineScope.launch {
-                        viewModel.loadMuseums() // Asume que tienes una función para recargar los datos
-                    }
-                },
+        bottomBar = {  },
+    ) { innerPadding ->
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            // Filtros
+            Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize() // Asegúrate de que la columna interna también llene el espacio
-                        .verticalScroll(rememberScrollState())
+                Text(
+                    text = "Encuentra tu museo favorito",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(
+                    Filter("Arte", Color(0xFFFF5722), viewModel)
+                    Spacer(Modifier.width(8.dp))
+                    Filter("Historia", Color(0xFF4CAF50), viewModel)
+                    Spacer(Modifier.width(8.dp))
+                    Filter("Cultura", Color(0xFF9C27B0), viewModel)
+                    Spacer(Modifier.width(8.dp))
+                    Filter("Todos", Color.Black, viewModel)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            // Contenido
+            when {
+                isLoading -> {
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(ColorFondoEncabezado)
-                            .padding(16.dp)
+                            .height(200.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+                error != null -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Encuentra tu museo favorito",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = ColorAzulOscuroPrincipal,
-                            modifier = Modifier.fillMaxWidth(),
+                            text = error,
+                            color = MaterialTheme.colorScheme.error,
                             textAlign = TextAlign.Center
                         )
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Filter("Arte", ColorAzulOscuroPrincipal, viewModel)
-                            Spacer(Modifier.width(8.dp))
-                            Filter("Historia", ColorAzulMedioEtiqueta, viewModel)
-                            Spacer(Modifier.width(8.dp))
-                            Filter("Cultura", ColorAzulClaroEtiqueta, viewModel)
-                            Spacer(Modifier.width(8.dp))
-                            Filter("Todos", ColorAzulMuyOscuroEtiqueta, viewModel)
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
                     }
-
-                    Column(
+                }
+                museums.isEmpty() -> {
+                    Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                            .padding(top = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                            .height(80.dp),
+                        shape = MaterialTheme.shapes.medium,
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                     ) {
-                        when {
-                            isLoading -> {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(200.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator()
-                                }
-                            }
-                            error != null -> {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(200.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = error,
-                                        color = Color.Red,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-                            }
-                            museums.isEmpty() -> {
-                                Surface(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(80.dp),
-                                    shape = RoundedCornerShape(12.dp),
-                                    color = ColorAzulCieloInfo,
-                                    contentColor = ColorTextoSobreOscuro
-                                ) {
-                                    Box(
-                                        contentAlignment = Alignment.Center,
-                                        modifier = Modifier.padding(16.dp)
-                                    ) {
-                                        Text(
-                                            text = "No hay museos disponibles",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = ColorTextoSobreOscuro
-                                        )
-                                    }
-                                }
-                            }
-                            else -> {
-                                museums.forEach { museum ->
-                                    MuseumCard(
-                                        name = museum.name,
-                                        isActive = museum.estado == "active",
-                                        imageUrl = museum.imageUrl,
-                                        description = museum.descripcion,
-                                        price = museum.precio,
-                                        numberOfRooms = museum.numberOfRooms,
-                                        onClick = { /* Aquí podrías navegar a los detalles del museo */ }
-                                    )
-                                }
-                            }
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(
+                                text = "No hay museos disponibles",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                         }
-
-                        Spacer(modifier = Modifier.height(16.dp))
                     }
+                }
+                else -> {
+                    ListMuseums(museums)
                 }
             }
         }
-    )
+    }
 }
 
 @Composable
-fun MuseumCard(
-    name: String,
-    isActive: Boolean,
-    imageUrl: String?,
-    description: String,
-    price: Double,
-    numberOfRooms: Int,
-    onClick: () -> Unit
-) {
-    val cardBackgroundColor = if (isActive) ColorAzulOscuroPrincipal else ColorGrisTarjetaInactiva
-    val textColor = ColorTextoSobreOscuro
-    val statusTagColor = if (isActive) ColorVerdeActivo else ColorRojoInactivo
+fun ListMuseums(museums: List<Museum>) {
+    val context = LocalContext.current
 
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(250.dp)
-            .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
-        shadowElevation = 4.dp
+    LazyColumn(
+        modifier = Modifier.padding(horizontal = 16.dp)
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (imageUrl != null) {
-                AsyncImage(
-                    model = imageUrl,
-                    contentDescription = "Imagen de fondo del museo",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(16.dp)),
-                    contentScale = ContentScale.Crop
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.4f))
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(cardBackgroundColor)
-                )
-            }
+        items(museums.size) { index ->
+            val museum = museums[index]
+            MuseumCard(
+                museum = museum,
+                modifier = Modifier.clickable {
+                    Toast.makeText(context, museum.name, Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+    }
+}
 
-            Column(
+@Composable
+fun MuseumCard(museum: Museum, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
+        Card(
+            modifier = modifier.padding(8.dp),
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                    .fillMaxWidth()
+                    .height(200.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.End)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(statusTagColor)
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = if (isActive) "ACTIVO" else "INACTIVO",
-                        color = ColorTextoSobreOscuro,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold
+                if (museum.imageUrl != null) {
+                    AsyncImage(
+                        model = museum.imageUrl,
+                        contentDescription = "Imagen del ${museum.name}",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.primaryContainer)
                     )
                 }
 
-                Column {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f))
+                )
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .background(
+                            color = if (museum.estado == "active") Color.Green
+                            else Color.Red,
+                            shape = MaterialTheme.shapes.small
+                        )
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
                     Text(
-                        text = name,
-                        color = textColor,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+                        text = if (museum.estado == "active") "ACTIVO" else "INACTIVO",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.bodySmall
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(16.dp)
+                ) {
                     Text(
-                        text = description.take(100) + if (description.length > 100) "..." else "",
-                        color = textColor,
+                        text = museum.name,
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleLarge,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = museum.descripcion.take(100) + if (museum.descripcion.length > 100) "..." else "",
+                        color = Color.LightGray, // Mismo esquema con transparencia
                         style = MaterialTheme.typography.bodyMedium,
                         maxLines = 2
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Precio: $$price",
-                        color = textColor,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "Salas: $numberOfRooms",
-                        color = textColor,
-                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
@@ -300,8 +235,8 @@ fun MuseumCard(
 @Composable
 fun Filter(text: String, color: Color, viewModel: MuseumViewModel) {
     Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = ColorFondoEncabezado,
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         border = BorderStroke(1.dp, color),
         modifier = Modifier.clickable { viewModel.setFilter(text) }
     ) {
@@ -314,3 +249,4 @@ fun Filter(text: String, color: Color, viewModel: MuseumViewModel) {
         )
     }
 }
+
