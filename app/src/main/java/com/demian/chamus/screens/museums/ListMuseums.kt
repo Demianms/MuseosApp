@@ -34,6 +34,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.demian.chamus.models.Museum
+import com.demian.chamus.screens.wheter.WeatherCard
 import com.demian.chamus.viewmodel.MuseumViewModel
 
 @Composable
@@ -131,6 +132,10 @@ fun ListMuseumsScreen(viewModel: MuseumViewModel = viewModel(), navController: N
                     }
                 }
                 else -> {
+                    // Agregamos la tarjeta del clima antes de la lista de museos
+                    WeatherCard()
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     ListMuseums(museums, navController)
                 }
             }
@@ -139,9 +144,8 @@ fun ListMuseumsScreen(viewModel: MuseumViewModel = viewModel(), navController: N
 }
 
 @Composable
-
 fun ListMuseums(museums: List<Museum>, navController: NavController ) {
-    val context = LocalContext.current
+    LocalContext.current
 
 
     LazyColumn(
