@@ -1,3 +1,13 @@
+// Agrega estos imports al inicio del archivo
+import java.util.Properties
+import java.io.InputStreamReader
+
+
+val localProperties = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.exists() }?.reader()?.use(::load)
+}
+
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -8,6 +18,11 @@ android {
     namespace = "com.demian.chamus"
     compileSdk = 35
 
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.demian.chamus"
         minSdk = 24
@@ -16,6 +31,13 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField(
+            "String",
+            "WEATHER_API_KEY",
+            "\"${localProperties.getProperty("WEATHER_API_KEY") ?: ""}\""
+        )
+
     }
 
     buildTypes {
@@ -40,7 +62,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -51,9 +72,9 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.constraintlayout.compose)
     implementation(libs.coil.compose)
-    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation.compose) // Usar solo una versión
 
-    implementation (libs.androidx.navigation.compose.v277)
+    // Eliminar la duplicación: implementation (libs.androidx.navigation.compose.v277)
 
     implementation(libs.retrofit)
     implementation(libs.converter.gson) // Para parsear JSON
@@ -64,7 +85,7 @@ dependencies {
     // ViewModel y Lifecycle para Jetpack Compose
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx.v286)
-    implementation (libs.accompanist.swiperefresh.v0280)
+    implementation(libs.accompanist.swiperefresh.v0280) // Dependencia para refresh
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
