@@ -32,12 +32,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.demian.chamus.models.Museum
 import com.demian.chamus.viewmodel.MuseumViewModel
 
 @Composable
-fun ListMuseumsScreen(viewModel: MuseumViewModel = viewModel()) {
+fun ListMuseumsScreen(viewModel: MuseumViewModel = viewModel(), navController: NavController) {
     val museums = viewModel.museums.collectAsState().value
     val isLoading = viewModel.isLoading.collectAsState().value
     val error = viewModel.error.collectAsState().value
@@ -131,7 +132,7 @@ fun ListMuseumsScreen(viewModel: MuseumViewModel = viewModel()) {
                     }
                 }
                 else -> {
-                    ListMuseums(museums)
+                    ListMuseums(museums, navController)
                 }
             }
         }
@@ -139,7 +140,7 @@ fun ListMuseumsScreen(viewModel: MuseumViewModel = viewModel()) {
 }
 
 @Composable
-fun ListMuseums(museums: List<Museum>) {
+fun ListMuseums(museums: List<Museum>, navController: NavControllergit ) {
     val context = LocalContext.current
 
     LazyColumn(
@@ -151,6 +152,7 @@ fun ListMuseums(museums: List<Museum>) {
                 museum = museum,
                 modifier = Modifier.clickable {
                     Toast.makeText(context, museum.name, Toast.LENGTH_SHORT).show()
+                    navController.navigate("museum_detail/${museum.id}")
                 }
             )
         }

@@ -1,6 +1,8 @@
 [versions]
+accompanistSwiperefresh = "0.28.0"
 accompanistSwiperefreshVersion = "<latest_version>"
 agp = "8.10.1"
+androidxNavigationCompose = "2.7.7"
 coilCompose = "2.4.0"
 constraintlayoutCompose = "1.0.1"
 converterGsonVersion = "2.11.0"
@@ -19,11 +21,13 @@ navigationCompose = "2.9.0"
 navigationComposeJvmstubs = "2.9.0"
 
 [libraries]
+accompanist-swiperefresh-v0280 = { module = "com.google.accompanist:accompanist-swiperefresh", version.ref = "accompanistSwiperefresh" }
 androidx-constraintlayout-compose = { module = "androidx.constraintlayout:constraintlayout-compose", version.ref = "constraintlayoutCompose" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx-v286 = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtxVersion" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtxVersion" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+androidx-navigation-compose-v277 = { module = "androidx.navigation:navigation-compose", version.ref = "androidxNavigationCompose" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGsonVersion" }
 google-accompanist-swiperefresh = { module = "com.google.accompanist:accompanist-swiperefresh", version.ref = "accompanistSwiperefreshVersion" }

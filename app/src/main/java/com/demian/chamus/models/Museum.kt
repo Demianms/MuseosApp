@@ -17,6 +17,7 @@ data class Museum(
     val estado: String,
     val creado: String,
     val actualizado: String,
+    @SerializedName("descuento") val descuento: String,
     val rooms: List<Room>
 )
 
