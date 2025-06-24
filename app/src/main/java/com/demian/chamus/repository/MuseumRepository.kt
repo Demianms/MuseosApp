@@ -7,4 +7,8 @@ class MuseumRepository {
     suspend fun getMuseums(): List<Museum> {
         return RetrofitClient.api.getMuseums()
     }
+
+    suspend fun getMuseumById(id: Int): Museum {
+        return RetrofitClient.api.getMuseumById(id)
+    }
 }

@@ -6,6 +6,7 @@ import com.demian.chamus.models.Museum
 import com.demian.chamus.repository.MuseumRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class MuseumViewModel : ViewModel() {
@@ -36,7 +37,7 @@ class MuseumViewModel : ViewModel() {
 
     // Función pública para cargar/recargar los museos.
     // Usada por el pull-to-refresh.
-    fun loadMuseums() {
+    private fun loadMuseums() {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
@@ -50,6 +51,30 @@ class MuseumViewModel : ViewModel() {
                 _museums.value = allMuseums
             } catch (e: Exception) {
                 _error.value = e.message ?: "Error al cargar los museos"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    private val _selectedMuseum = MutableStateFlow<Museum?>(null)
+    val selectedMuseum: StateFlow<Museum?> = _selectedMuseum.asStateFlow()
+
+    // ¡ESTA ES LA FUNCIÓN CLAVE QUE NECESITAMOS CAMBIAR!
+    // Ya NO buscaremos en _museums.value. Ahora usaremos el repositorio directamente.
+    fun loadMuseumDetails(museumId: Int) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null // Limpiar cualquier error anterior
+            _selectedMuseum.value = null // Limpiar el museo anterior mientras se carga uno nuevo
+
+            try {
+                // CAMBIO FUNDAMENTAL: Llamada directa al repositorio para obtener el museo por ID
+                val museum = repository.getMuseumById(museumId)
+                _selectedMuseum.value = museum
+            } catch (e: Exception) {
+                // Captura errores de red, 404s, errores de deserialización, etc.
+                _error.value = "Error al cargar detalles del museo (ID: $museumId) desde la API: ${e.message}"
             } finally {
                 _isLoading.value = false
             }

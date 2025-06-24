@@ -8,9 +8,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.demian.chamus.screens.museums.DetailsMuseums
 import com.demian.chamus.screens.museums.ListMuseumsScreen
 import com.demian.chamus.screens.splash.SplashScreen
 import com.demian.chamus.ui.theme.ChamusTheme
@@ -34,13 +37,25 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "splash_screen") {
+    NavHost(
+        navController = navController,
+        startDestination = "splash_screen"
+    ) {
         composable("splash_screen") {
             SplashScreen(navController = navController)
         }
         composable("list_museums_screen") {
-            ListMuseumsScreen()
+            ListMuseumsScreen(navController = navController)
         }
-
+        composable(
+            "museum_detail/{museumId}",
+            arguments = listOf(navArgument("museumId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val museumId = backStackEntry.arguments?.getInt("museumId") ?: 0
+            DetailsMuseums(
+                museumId = museumId,
+                navController = navController
+            )
+        }
     }
 }

@@ -1,6 +1,5 @@
 package com.demian.chamus.screens.museums
 
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -140,9 +138,7 @@ fun ListMuseumsScreen(viewModel: MuseumViewModel = viewModel(), navController: N
 }
 
 @Composable
-fun ListMuseums(museums: List<Museum>, navController: NavControllergit ) {
-    val context = LocalContext.current
-
+fun ListMuseums(museums: List<Museum>, navController: NavController) {
     LazyColumn(
         modifier = Modifier.padding(horizontal = 16.dp)
     ) {
@@ -151,7 +147,6 @@ fun ListMuseums(museums: List<Museum>, navController: NavControllergit ) {
             MuseumCard(
                 museum = museum,
                 modifier = Modifier.clickable {
-                    Toast.makeText(context, museum.name, Toast.LENGTH_SHORT).show()
                     navController.navigate("museum_detail/${museum.id}")
                 }
             )
@@ -224,7 +219,7 @@ fun MuseumCard(museum: Museum, modifier: Modifier = Modifier) {
                     )
                     Text(
                         text = museum.descripcion.take(100) + if (museum.descripcion.length > 100) "..." else "",
-                        color = Color.LightGray, // Mismo esquema con transparencia
+                        color = Color.LightGray,
                         style = MaterialTheme.typography.bodyMedium,
                         maxLines = 2
                     )
