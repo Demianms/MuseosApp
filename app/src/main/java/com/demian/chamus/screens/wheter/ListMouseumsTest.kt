@@ -1,5 +1,6 @@
-package com.demian.chamus.screens.museums
+package com.demian.chamus.screens.weather
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,15 +19,17 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -36,16 +39,18 @@ import coil.compose.AsyncImage
 import com.demian.chamus.models.Museum
 import com.demian.chamus.viewmodel.MuseumViewModel
 
+
 @Composable
-fun ListMuseumsScreen(viewModel: MuseumViewModel = viewModel(), navController: NavController) {
+fun ListMuseumsTest(viewModel: MuseumViewModel = viewModel(), navController: NavController) {
     val museums = viewModel.museums.collectAsState().value
     val isLoading = viewModel.isLoading.collectAsState().value
     val error = viewModel.error.collectAsState().value
+    val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
-        bottomBar = {  },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        bottomBar = { },
     ) { innerPadding ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -131,7 +136,11 @@ fun ListMuseumsScreen(viewModel: MuseumViewModel = viewModel(), navController: N
                     }
                 }
                 else -> {
-                    ListMuseums(museums, navController)
+                    ListMuseums(
+                        museums = museums,
+                        navController = navController,
+                        snackbarHostState = snackbarHostState
+                    )
                 }
             }
         }
@@ -139,14 +148,18 @@ fun ListMuseumsScreen(viewModel: MuseumViewModel = viewModel(), navController: N
 }
 
 @Composable
-
-fun ListMuseums(museums: List<Museum>, navController: NavController ) {
-    val context = LocalContext.current
-
-
+fun ListMuseums(
+    museums: List<Museum>,
+    navController: NavController,
+    snackbarHostState: SnackbarHostState
+) {
     LazyColumn(
         modifier = Modifier.padding(horizontal = 16.dp)
     ) {
+        // Inyectar WeatherCard al inicio
+        item {
+            WeatherCard()
+        }
         items(museums.size) { index ->
             val museum = museums[index]
             MuseumCard(
@@ -251,4 +264,3 @@ fun Filter(text: String, color: Color, viewModel: MuseumViewModel) {
         )
     }
 }
-

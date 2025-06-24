@@ -16,6 +16,7 @@ import androidx.navigation.navArgument
 import com.demian.chamus.screens.museums.DetailsMuseums
 import com.demian.chamus.screens.museums.ListMuseumsScreen
 import com.demian.chamus.screens.splash.SplashScreen
+import com.demian.chamus.screens.weather.ListMuseumsTest
 import com.demian.chamus.ui.theme.ChamusTheme
 
 class MainActivity : ComponentActivity() {
@@ -45,6 +46,7 @@ fun AppNavigation() {
             SplashScreen(navController = navController)
         }
         composable("list_museums_screen") {
+
             ListMuseumsScreen(navController = navController)
         }
         composable(
