@@ -1,31 +1,33 @@
-package com.demian.chamus.models
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 
-import com.google.gson.annotations.SerializedName
-
-data class Museum(
-    val id: Int,
-    @SerializedName("nombre") val name: String,
-    @SerializedName("imagen") val imageUrl: String?,
-    @SerializedName("hora_de_apertura") val openingTime: String,
-    @SerializedName("hora_de_cierre") val closingTime: String,
-    val latitud: Double,
-    val longitud: Double,
-    val descripcion: String,
-    val precio: Double,
-    val url: String,
-    @SerializedName("numero_de_salas") val numberOfRooms: Int,
-    val estado: String,
-    val creado: String,
-    val actualizado: String,
-    @SerializedName("descuento") val descuento: String?,
-    val rooms: List<Room>?
-)
-
+// --- Clase para una sola Sala (Room) ---
+@Serializable
 data class Room(
     val id: Int,
-    @SerializedName("nombre") val name: String,
-    @SerializedName("imagen") val imageUrl: String?,
+    val nombre: String,
+    val imagen: String,
     val descripcion: String,
     val creado: String,
     val actualizado: String
+)
+
+// --- Clase para el Museo completo ---
+@Serializable
+data class Museum(
+    val id: Int,
+    val nombre: String,
+    val imagen: String,
+    @SerialName("hora_de_apertura") val horaDeApertura: String,
+    @SerialName("hora_de_cierre") val horaDeCierre: String,
+    val latitud: Double?,
+    val longitud: Double?,
+    val descripcion: String,
+    val precio: Double,
+    val url: String,
+    @SerialName("numero_de_salas") val numeroDeSalas: Int,
+    val estado: String,
+    val creado: String,
+    val actualizado: String,
+    val rooms: List<Room> // ¡Aquí también! Una lista de objetos Room.
 )

@@ -1,5 +1,7 @@
 package com.demian.chamus.screens.museums
 
+import Museum
+import Room
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.widget.Toast
@@ -41,8 +43,6 @@ import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.demian.chamus.models.Museum
-import com.demian.chamus.models.Room
 import com.demian.chamus.viewmodel.MuseumViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -142,10 +142,10 @@ fun MuseumDetailContent(museum: Museum, modifier: Modifier = Modifier) {
                     .fillMaxWidth()
                     .height(250.dp)
             ) {
-                if (museum.imageUrl != null) {
+                if (museum.imagen != null) {
                     AsyncImage(
-                        model = museum.imageUrl,
-                        contentDescription = "Imagen de ${museum.name}",
+                        model = museum.imagen,
+                        contentDescription = "Imagen de ${museum.nombre}",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
@@ -167,7 +167,7 @@ fun MuseumDetailContent(museum: Museum, modifier: Modifier = Modifier) {
                         .padding(16.dp)
                 ) {
                     Text(
-                        text = museum.name,
+                        text = museum.nombre,
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -242,11 +242,11 @@ fun MuseumDetailContent(museum: Museum, modifier: Modifier = Modifier) {
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
                     Text(
-                        text = "Apertura: ${museum.openingTime}",
+                        text = "Apertura: ${museum.horaDeApertura}",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = "Cierre: ${museum.closingTime}",
+                        text = "Cierre: ${museum.horaDeCierre}",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
@@ -261,13 +261,13 @@ fun MuseumDetailContent(museum: Museum, modifier: Modifier = Modifier) {
                         text = "Entrada general: ${museum.precio}",
                         style = MaterialTheme.typography.bodyMedium
                     )
-                    Text(
+                    /*Text(
                         text = when {
                             museum.descuento.isNullOrEmpty() -> "No hay descuentos disponibles"
                             else -> "Descuentos: ${museum.descuento}"
                         },
                         style = MaterialTheme.typography.bodyMedium
-                    )
+                    )*/
                 }
             }
         }
@@ -336,11 +336,12 @@ fun MuseumDetailContent(museum: Museum, modifier: Modifier = Modifier) {
             items(museum.rooms) { room ->
                 RoomCard(room = room)
                 Spacer(modifier = Modifier.height(8.dp))
+
             }
         } else {
             item {
                 Text(
-                    text = "No hay salas disponibles para este museo.",
+                    text = "No hay salas aun.",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(16.dp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -357,15 +358,17 @@ fun RoomCard(room: Room) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp),
         shape = MaterialTheme.shapes.medium,
-        elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 2.dp),
+
+
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            if (room.imageUrl != null) {
+            if (room.imagen != null) {
                 AsyncImage(
-                    model = room.imageUrl,
-                    contentDescription = "Imagen de ${room.name}",
+                    model = room.imagen,
+                    contentDescription = "Imagen de ${room.nombre}",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -387,7 +390,7 @@ fun RoomCard(room: Room) {
             }
 
             Text(
-                text = room.name,
+                text = room.nombre,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 4.dp)
