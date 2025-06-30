@@ -175,20 +175,12 @@ fun MuseumCard(museum: Museum, modifier: Modifier = Modifier) {
                     .fillMaxWidth()
                     .height(200.dp)
             ) {
-                if (museum.imagen != null) {
-                    AsyncImage(
-                        model = museum.imagen,
-                        contentDescription = "Imagen del ${museum.nombre}",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.primaryContainer)
-                    )
-                }
+                AsyncImage(
+                    model = museum.imagen,
+                    contentDescription = "Imagen del ${museum.nombre}",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
 
                 Box(
                     modifier = Modifier

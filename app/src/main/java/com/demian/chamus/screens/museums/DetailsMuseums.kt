@@ -118,7 +118,8 @@ fun DetailsMuseums(
             else -> {
                 MuseumDetailContent(
                     museum = museum!!,
-                    modifier = Modifier.padding(innerPadding)
+                    modifier = Modifier.padding(innerPadding),
+                    navController = navController,
                 )
             }
         }
@@ -127,7 +128,7 @@ fun DetailsMuseums(
 
 @SuppressLint("QueryPermissionsNeeded")
 @Composable
-fun MuseumDetailContent(museum: Museum, modifier: Modifier = Modifier) {
+fun MuseumDetailContent(museum: Museum, modifier: Modifier = Modifier, navController: NavController) {
     val context = LocalContext.current
 
     LazyColumn(
@@ -142,23 +143,12 @@ fun MuseumDetailContent(museum: Museum, modifier: Modifier = Modifier) {
                     .fillMaxWidth()
                     .height(250.dp)
             ) {
-                if (museum.imagen != null) {
-                    AsyncImage(
-                        model = museum.imagen,
-                        contentDescription = "Imagen de ${museum.nombre}",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("No hay imagen disponible", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
+                AsyncImage(
+                    model = museum.imagen,
+                    contentDescription = "Imagen de ${museum.nombre}",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -324,7 +314,7 @@ fun MuseumDetailContent(museum: Museum, modifier: Modifier = Modifier) {
         }
 
         // Salas
-        if (museum.rooms?.isNotEmpty() == true) {
+        if (museum.rooms.isNotEmpty()) {
             item {
                 Text(
                     text = "Salas del Museo",
@@ -334,9 +324,12 @@ fun MuseumDetailContent(museum: Museum, modifier: Modifier = Modifier) {
                 )
             }
             items(museum.rooms) { room ->
-                RoomCard(room = room)
+                RoomCard(
+                    room = room,
+                    museumId = museum.id, // Pasar el ID del museo actual
+                    navController = navController
+                )
                 Spacer(modifier = Modifier.height(8.dp))
-
             }
         } else {
             item {
@@ -352,42 +345,36 @@ fun MuseumDetailContent(museum: Museum, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun RoomCard(room: Room) {
+fun RoomCard(
+    room: Room,
+    museumId: Int, // Nuevo parámetro
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .clickable {
+                // Navegación con ambos parámetros
+                navController.navigate("room_detail/${room.id}?museumId=$museumId")
+            },
         shape = MaterialTheme.shapes.medium,
         elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 2.dp),
-
-
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            if (room.imagen != null) {
-                AsyncImage(
-                    model = room.imagen,
-                    contentDescription = "Imagen de ${room.nombre}",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("No hay imagen disponible para la sala", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-            }
+            /* AsyncImage(
+                model = room.imagen,
+                contentDescription = "Imagen de ${room.nombre}",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            )
+            Spacer(modifier = Modifier.height(12.dp)) */
 
             Text(
                 text = room.nombre,
@@ -399,7 +386,8 @@ fun RoomCard(room: Room) {
             Text(
                 text = room.descripcion,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
             )
         }
     }

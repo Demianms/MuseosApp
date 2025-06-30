@@ -8,10 +8,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -69,11 +69,22 @@ fun AppNavigation() {
             )
         }
         composable(
-            "room_detail/{roomId}",
-            arguments = listOf(navArgument("roomId") { type = NavType.IntType })
+            "room_detail/{roomId}?museumId={museumId}",
+            arguments = listOf(
+                navArgument("roomId") { type = NavType.IntType },
+                navArgument("museumId") { type = NavType.IntType }
+            )
         ) { backStackEntry ->
             val roomId = backStackEntry.arguments?.getInt("roomId") ?: 0
-            val room = viewModel.selectedMuseum.value?.rooms?.find { it.id == roomId }
+            val museumId = backStackEntry.arguments?.getInt("museumId") ?: 0
+
+            // Cargar los detalles del museo primero
+            LaunchedEffect(museumId) {
+                viewModel.loadMuseumDetails(museumId)
+            }
+
+            val selectedMuseum by viewModel.selectedMuseum.collectAsState()
+            val room = selectedMuseum?.rooms?.find { it.id == roomId }
 
             if (room != null) {
                 DetailsRoom(
