@@ -1,5 +1,6 @@
 package com.demian.chamus.screens.museums
 
+import Museum
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,13 +34,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.demian.chamus.models.Museum
 import com.demian.chamus.screens.wheter.WeatherCard
 import com.demian.chamus.viewmodel.MuseumViewModel
 
 @Composable
 fun ListMuseumsScreen(viewModel: MuseumViewModel = viewModel(), navController: NavController) {
-    val museums = viewModel.museums.collectAsState().value
+    val museums = viewModel.museosFiltrados.collectAsState().value.map { it.museum }
     val isLoading = viewModel.isLoading.collectAsState().value
     val error = viewModel.error.collectAsState().value
 
@@ -175,10 +175,10 @@ fun MuseumCard(museum: Museum, modifier: Modifier = Modifier) {
                     .fillMaxWidth()
                     .height(200.dp)
             ) {
-                if (museum.imageUrl != null) {
+                if (museum.imagen != null) {
                     AsyncImage(
-                        model = museum.imageUrl,
-                        contentDescription = "Imagen del ${museum.name}",
+                        model = museum.imagen,
+                        contentDescription = "Imagen del ${museum.nombre}",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
@@ -221,7 +221,7 @@ fun MuseumCard(museum: Museum, modifier: Modifier = Modifier) {
                         .padding(16.dp)
                 ) {
                     Text(
-                        text = museum.name,
+                        text = museum.nombre,
                         color = Color.White,
                         style = MaterialTheme.typography.titleLarge,
                         maxLines = 1

@@ -1,5 +1,6 @@
 package com.demian.chamus.screens.museums
 
+import Room
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -14,7 +15,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.demian.chamus.models.Room
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,10 +46,10 @@ fun DetailsRoom(room: Room, navController: NavController) {
                 .fillMaxSize()
         ) {
             // Imagen de la sala
-            if (!room.imageUrl.isNullOrEmpty()) {
+            if (!room.imagen.isNullOrEmpty()) {
                 AsyncImage(
-                    model = room.imageUrl,
-                    contentDescription = "Imagen de ${room.name}",
+                    model = room.imagen,
+                    contentDescription = "Imagen de ${room.nombre}",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -76,7 +76,7 @@ fun DetailsRoom(room: Room, navController: NavController) {
 
             // Nombre de la sala
             Text(
-                text = room.name,
+                text = room.nombre,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 8.dp)

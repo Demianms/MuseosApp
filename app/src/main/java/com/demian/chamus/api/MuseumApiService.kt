@@ -1,6 +1,6 @@
 package com.demian.chamus.api
 
-import com.demian.chamus.models.Museum
+import Museum
 import retrofit2.http.GET
 import retrofit2.http.Path
 
