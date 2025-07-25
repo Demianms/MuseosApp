@@ -1,6 +1,6 @@
 package com.demian.chamus.screens.wheter
 
-import Museum
+import com.demian.chamus.models.Museum
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

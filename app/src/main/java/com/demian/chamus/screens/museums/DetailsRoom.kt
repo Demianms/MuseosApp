@@ -1,6 +1,6 @@
 package com.demian.chamus.screens.museums
 
-import Room
+import com.demian.chamus.models.Room
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons

@@ -38,6 +38,8 @@ android {
             "\"${localProperties.getProperty("WEATHER_API_KEY") ?: ""}\""
         )
 
+        manifestPlaceholders["MAPS_API_KEY"] = localProperties.getProperty("MAPS_API_KEY") ?: ""
+
     }
 
     buildTypes {
@@ -86,6 +88,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx.v286)
     implementation(libs.accompanist.swiperefresh.v0280) // Dependencia para refresh
+
+    implementation (libs.maps.compose)
+    implementation (libs.play.services.maps)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

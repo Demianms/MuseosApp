@@ -1,6 +1,6 @@
 package com.demian.chamus.repository
 
-import Museum
+import com.demian.chamus.models.Museum
 import com.demian.chamus.api.RetrofitClient
 
 class MuseumRepository {

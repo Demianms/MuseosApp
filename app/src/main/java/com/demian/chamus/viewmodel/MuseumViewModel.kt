@@ -1,6 +1,6 @@
 package com.demian.chamus.viewmodel
 
-import Museum
+import com.demian.chamus.models.Museum
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
@@ -75,6 +75,8 @@ class MuseumViewModel : ViewModel() {
 
             try {
                 val museum = repository.getMuseumById(museumId)
+
+                println("Museo cargado: $museum")
                 _selectedMuseum.value = museum
             } catch (e: Exception) {
                 _error.value = "Error al cargar detalles del museo (ID: $museumId): ${e.message}"
@@ -108,4 +110,7 @@ class MuseumViewModel : ViewModel() {
             else -> Categoria.Cultura
         }
     }
+
+
+
 }
