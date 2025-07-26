@@ -79,7 +79,7 @@ dependencies {
     // Eliminar la duplicación: implementation (libs.androidx.navigation.compose.v277)
 
     implementation(libs.retrofit)
-    implementation(libs.converter.gson) // Para parsear JSON
+    implementation(libs.converter.gson) 
     // OkHttp para logging (opcional, útil para depuración)
     implementation(libs.logging.interceptor)
     // Coroutines para manejar operaciones asíncronas
@@ -91,6 +91,8 @@ dependencies {
 
     implementation (libs.maps.compose)
     implementation (libs.play.services.maps)
+
+    implementation (libs.gson)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

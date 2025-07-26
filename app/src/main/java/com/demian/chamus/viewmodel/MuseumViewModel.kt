@@ -1,69 +1,129 @@
 package com.demian.chamus.viewmodel
 
-import com.demian.chamus.models.Museum
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-
+import com.demian.chamus.models.Category
+import com.demian.chamus.models.Museum
 import com.demian.chamus.repository.MuseumRepository
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-
-
-data class MuseoConCategoria(
-    val museum: Museum,
-    val categoria: Categoria
-)
 
 class MuseumViewModel : ViewModel() {
     private val repository = MuseumRepository()
 
+    // museos
     private val _museums = MutableStateFlow<List<Museum>>(emptyList())
-    val museums: StateFlow<List<Museum>> = _museums
+    val museums: StateFlow<List<Museum>> = _museums.asStateFlow()
+
+    // categorías
+    private val _categories = MutableStateFlow<List<Category>>(emptyList())
+    val categories: StateFlow<List<Category>> = _categories.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error
+    val error: StateFlow<String?> = _error.asStateFlow()
 
-    private val _filter = MutableStateFlow("Todos")
-    val filter: StateFlow<String> = _filter
+    // Filtro
+    private val _currentFilter = MutableStateFlow<Category?>(null)
+    val currentFilter: StateFlow<Category?> = _currentFilter.asStateFlow()
 
-    private var allMuseosCategorizados: List<MuseoConCategoria> = emptyList()
+    // Museos filtrados
+    val filteredMuseums: StateFlow<List<Museum>> =
+        combine(_museums, _currentFilter) { allMuseums, currentFilter ->
+            if (currentFilter == null) {
+                allMuseums
+            } else {
+                allMuseums.filter { museum ->
+                    museum.categories.any { category ->
+                        category.id == currentFilter.id
+                    }
+                }
+            }
 
-    private val _museosFiltrados = MutableStateFlow<List<MuseoConCategoria>>(emptyList())
-    val museosFiltrados: StateFlow<List<MuseoConCategoria>> = _museosFiltrados
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     init {
-        loadMuseums()
+        loadInitialData()
     }
 
-    private fun loadMuseums() {
+    private fun loadInitialData() {
+        if (_categories.value.isNotEmpty()) return // Evita recargas innecesarias
+
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
 
             try {
-                val museums = repository.getMuseums()
-                _museums.value = museums
+                // Ejecuta en paralelo realmente
+                val museumsJob = async { loadMuseums() }
+                val categoriesJob = async { loadCategories() }
 
-                // Categorizar cada museo
-                allMuseosCategorizados = museums.map {
-                    MuseoConCategoria(it, categorizarMuseo(it))
-                }
+                // Espera ambos
+                museumsJob.await()
+                categoriesJob.await()
 
-                applyFilter() // aplicar filtro actual
-
+                Log.d("MuseumViewModel", "Datos iniciales cargados")
+                resetFilter()
             } catch (e: Exception) {
-                _error.value = e.message ?: "Error al cargar los museos"
+                _error.value = "Error: ${e.message ?: "Desconocido"}"
+                Log.e("MuseumViewModel", "Error en loadInitialData", e)
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
+    private suspend fun loadMuseums() {
+        try {
+            val fetchedMuseums = repository.getMuseums()
+            _museums.value = fetchedMuseums
+            Log.d("MuseumViewModel", "Museos cargados: ${fetchedMuseums.size}")
+        } catch (e: Exception) {
+            _error.value = "Error al cargar museos: ${e.message}"
+            throw e
+        }
+    }
+
+    private suspend fun loadCategories() {
+        try {
+            val fetchedCategories = repository.getCategories()
+            _categories.value = fetchedCategories
+            Log.d("MuseumViewModel", "Categorías cargadas: ${fetchedCategories.size}")
+            fetchedCategories.forEach {
+                Log.d("MuseumViewModel", "Categoría: ${it.nombre} (ID: ${it.id})")
+            }
+        } catch (e: Exception) {
+            _error.value = "Error al cargar categorías: ${e.message}"
+            Log.e("MuseumViewModel", "Error en loadCategories", e)
+            throw e
+        }
+    }
+
+    // Funciones para manejar el filtrado
+    fun setFilter(category: Category) {
+        _currentFilter.value = category
+        Log.d("MuseumViewModel", "Filtro establecido a: ${category.nombre}")
+    }
+
+    fun resetFilter() {
+        _currentFilter.value = null
+        Log.d("MuseumViewModel", "Filtro reseteado (Todos)")
+    }
+
+    // Detalles del museo
     private val _selectedMuseum = MutableStateFlow<Museum?>(null)
     val selectedMuseum: StateFlow<Museum?> = _selectedMuseum.asStateFlow()
 
@@ -75,8 +135,6 @@ class MuseumViewModel : ViewModel() {
 
             try {
                 val museum = repository.getMuseumById(museumId)
-
-                println("Museo cargado: $museum")
                 _selectedMuseum.value = museum
             } catch (e: Exception) {
                 _error.value = "Error al cargar detalles del museo (ID: $museumId): ${e.message}"
@@ -85,32 +143,4 @@ class MuseumViewModel : ViewModel() {
             }
         }
     }
-
-    fun setFilter(filter: String) {
-        _filter.value = filter
-        applyFilter() // aplicar filtrado en tiempo real
-    }
-
-    // Nueva función: aplica el filtro
-    private fun applyFilter() {
-        _museosFiltrados.value = when (_filter.value) {
-            "Arte" -> allMuseosCategorizados.filter { it.categoria == Categoria.Arte }
-            "Historia" -> allMuseosCategorizados.filter { it.categoria == Categoria.Historia }
-            "Cultura" -> allMuseosCategorizados.filter { it.categoria == Categoria.Cultura }
-            else -> allMuseosCategorizados
-        }
-    }
-
-    // Función auxiliar para categorizar los museos por nombre
-    private fun categorizarMuseo(museo: Museum): Categoria {
-        return when {
-            museo.nombre.contains("Arte", ignoreCase = true) -> Categoria.Arte
-            museo.nombre.contains("Antropología", ignoreCase = true) -> Categoria.Historia
-            museo.nombre.contains("Cultura", ignoreCase = true) -> Categoria.Cultura
-            else -> Categoria.Cultura
-        }
-    }
-
-
-
 }

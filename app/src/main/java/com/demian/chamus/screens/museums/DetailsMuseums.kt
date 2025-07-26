@@ -98,7 +98,6 @@ fun DetailsMuseums(
                 }
             }
             else -> {
-                // Delegamos la mayor parte de la lógica de UI a un Composable más pequeño
                 MuseumDetailContent(
                     museum = museum!!,
                     modifier = Modifier.padding(innerPadding),
@@ -109,7 +108,6 @@ fun DetailsMuseums(
     }
 }
 
-// Mantenemos MuseumDetailContent aquí, pero lo refactorizamos usando los nuevos componentes
 @SuppressLint("DefaultLocale")
 @Composable
 fun MuseumDetailContent(museum: Museum, modifier: Modifier = Modifier, navController: NavController) {

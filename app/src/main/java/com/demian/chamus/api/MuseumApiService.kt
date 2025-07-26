@@ -1,5 +1,6 @@
 package com.demian.chamus.api
 
+import com.demian.chamus.models.Category
 import com.demian.chamus.models.Museum
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -10,4 +11,7 @@ interface MuseumApiService {
 
     @GET("api/museums/{id}")
     suspend fun getMuseumById(@Path("id") museumId: Int): Museum
+
+    @GET("api/categories")
+    suspend fun getCategories() : List<Category>
 }
