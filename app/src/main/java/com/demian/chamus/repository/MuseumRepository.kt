@@ -31,15 +31,19 @@ class MuseumRepository {
             emptyList()
         }
     }
-
-    // --- CAMBIO CRUCIAL AQUÍ ---
-    // Ahora devuelve Response<CotizacionGrupalResponse> para que el ViewModel maneje el éxito/error
+    
     suspend fun createCotizacion(request: CotizacionGrupalRequest): Response<CotizacionGrupalResponse> {
         return RetrofitClient.api.createCotizacion(request)
     }
 
-    // Este ya estaba correcto
     suspend fun getQuotationById(uniqueId: String): Response<CotizacionGrupalResponse> {
-        return RetrofitClient.api.getQuotationByUniqueId(uniqueId)
+        return try {
+            val response = RetrofitClient.api.getQuotationByUniqueId(uniqueId)
+            Log.d("MuseumRepository", "Respuesta de búsqueda: ${response.isSuccessful}, Código: ${response.code()}")
+            response
+        } catch (e: Exception) {
+            Log.e("MuseumRepository", "Error al buscar cotización", e)
+            throw e
+        }
     }
 }

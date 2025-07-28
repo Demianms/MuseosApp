@@ -71,6 +71,9 @@ fun QuotationScreen(
     quotationViewModel: QuotationViewModel = viewModel()
 ) {
 
+    LaunchedEffect(Unit) {
+        quotationViewModel.clearQuotationState()
+    }
 
     LaunchedEffect(initialMuseumId) {
         quotationViewModel.setInitialMuseumId(initialMuseumId)

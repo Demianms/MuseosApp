@@ -32,6 +32,7 @@ import java.text.NumberFormat
 import java.util.*
 import kotlin.math.log
 
+
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +40,6 @@ fun QuotationDetailsScreen(
     navController: NavController,
     quotationResponse: CotizacionGrupalResponse?
 ) {
-
     val context = LocalContext.current
     val currencyFormat = remember { NumberFormat.getCurrencyInstance(Locale("es", "MX")) }
 
@@ -50,6 +50,21 @@ fun QuotationDetailsScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                    }
+                },
+                actions = {
+                    // Botón de copiar ID en el AppBar (más visible)
+                    quotationResponse?.unique_id?.let { id ->
+                        IconButton(
+                            onClick = {
+                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                val clip = ClipData.newPlainText("Quotation ID", id)
+                                clipboard.setPrimaryClip(clip)
+                                Toast.makeText(context, "ID copiado", Toast.LENGTH_SHORT).show()
+                            }
+                        ) {
+                            Icon(Icons.Default.ContentCopy, contentDescription = "Copiar ID")
+                        }
                     }
                 }
             )
@@ -64,16 +79,7 @@ fun QuotationDetailsScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (quotationResponse?.cotizacion == null) {
-                Text(
-                    text = "No se pudieron cargar los detalles de la cotización.",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(16.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = { navController.popBackStack() }) {
-                    Text("Volver")
-                }
+                Text("No se pudieron cargar los detalles")
             } else {
                 val cotizacion = quotationResponse.cotizacion
                 println(cotizacion)
@@ -110,7 +116,7 @@ fun QuotationDetailsScreen(
                                 fontWeight = FontWeight.Medium
                             )
                             Spacer(modifier = Modifier.weight(1f))
-                            Text(text = quotationResponse.unique_id)
+                            quotationResponse.unique_id?.let { Text(text = it) }
                             Spacer(modifier = Modifier.width(8.dp))
                             IconButton(
                                 onClick = {
@@ -225,6 +231,7 @@ fun QuotationDetailsScreen(
                                 navController.navigate("museum_detail/$museumId") {
                                     launchSingleTop = true
                                     restoreState = true
+
                                 }
                             } catch (e: Exception) {
                                 Toast.makeText(context, "Error al navegar: ${e.message}", Toast.LENGTH_SHORT).show()

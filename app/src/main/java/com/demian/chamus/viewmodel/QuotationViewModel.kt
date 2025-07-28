@@ -117,11 +117,12 @@ class QuotationViewModel(private val repository: MuseumRepository = MuseumReposi
         _quotationResponse.value = response
     }
 
-    // --- NUEVO MÉTODO: Para establecer el indicador de búsqueda ---
-    fun setQuotationWasSearched(isSearched: Boolean) {
-        _wasQuotationSearched.value = isSearched
-        Log.d("QuotationViewModel", "wasQuotationSearched set to: $isSearched")
+    fun setQuotationWasSearched(wasSearched: Boolean) {
+        _wasQuotationSearched.value = wasSearched
     }
+
+    private val _navigationTrigger = MutableStateFlow(false)
+    val navigationTrigger: StateFlow<Boolean> = _navigationTrigger.asStateFlow()
 
     // --- Métodos para obtener datos ---
     private fun fetchMuseumsForSelection() {
@@ -331,50 +332,33 @@ class QuotationViewModel(private val repository: MuseumRepository = MuseumReposi
 
     fun fetchQuotationById(quotationId: String) {
         viewModelScope.launch {
-            setLoading(true)
-            setErrorMessage(null)
-            setQuotationResponse(null)
-            setQuotationWasSearched(false) // Resetear antes de la búsqueda
-
-            if (quotationId.isBlank()) {
-                setErrorMessage("El ID de la cotización no puede estar vacío.")
-                setLoading(false)
-                return@launch
-            }
+            _isLoading.value = true
+            _errorMessage.value = null
+            _quotationResponse.value = null
+            _navigationTrigger.value = false
 
             try {
-                val response: Response<CotizacionGrupalResponse> = repository.getQuotationById(quotationId)
+                val response = repository.getQuotationById(quotationId)
                 if (response.isSuccessful) {
-                    val receivedResponse = response.body()
-                    setQuotationResponse(receivedResponse)
-                    // Establecer a true SÓLO si la búsqueda fue exitosa y hay datos
-                    if (receivedResponse != null) {
-                        setQuotationWasSearched(true)
-                    } else {
-                        setErrorMessage("Cotización no encontrada o respuesta vacía.")
+                    response.body()?.let { apiResponse ->
+                        // Usamos getEffectiveCotizacion() que maneja ambos casos
+                        val effectiveCotizacion = apiResponse.getEffectiveCotizacion()
+                        if (effectiveCotizacion != null) {
+                            _quotationResponse.value = apiResponse
+                            _wasQuotationSearched.value = true
+                            _navigationTrigger.value = true
+                            Log.d("QuotationFlow", "Cotización válida procesada")
+                        } else {
+                            _errorMessage.value = "La cotización no contiene datos válidos"
+                        }
                     }
-                    Log.d("QuotationViewModel", "Cotización encontrada: ${receivedResponse?.unique_id}, wasQuotationSearched: ${wasQuotationSearched.value}")
                 } else {
-                    val errorBody = response.errorBody()?.string()
-                    setErrorMessage("Error al buscar cotización: ${response.code()} - ${errorBody ?: "Respuesta de error vacía"}")
-                    Log.d("QuotationViewModel", "Error en la respuesta de búsqueda: ${response.code()} - $errorBody")
-                    setQuotationWasSearched(false) // La búsqueda no fue exitosa
+                    _errorMessage.value = "Error al buscar cotización: ${response.code()}"
                 }
-            } catch (e: IOException) {
-                setErrorMessage("Error de red al buscar cotización. Por favor, revisa tu conexión.")
-                Log.d("QuotationViewModel", "Error de red al buscar cotización", e)
-                setQuotationWasSearched(false) // La búsqueda no fue exitosa
-            } catch (e: HttpException) {
-                val errorBody = e.response()?.errorBody()?.string()
-                setErrorMessage("Error en el servidor (${e.code()}) al buscar cotización: ${errorBody ?: "Error desconocido"}")
-                Log.d("QuotationViewModel", "Error HTTP al buscar cotización: ${e.code()} - $errorBody", e)
-                setQuotationWasSearched(false) // La búsqueda no fue exitosa
             } catch (e: Exception) {
-                setErrorMessage("Ocurrió un error inesperado al buscar cotización: ${e.message}")
-                Log.d("QuotationViewModel", "Error desconocido al buscar cotización", e)
-                setQuotationWasSearched(false) // La búsqueda no fue exitosa
+                _errorMessage.value = "Error de conexión: ${e.message}"
             } finally {
-                setLoading(false)
+                _isLoading.value = false
             }
         }
     }
@@ -396,15 +380,17 @@ class QuotationViewModel(private val repository: MuseumRepository = MuseumReposi
         setQuotationWasSearched(false) // Limpiar el indicador al limpiar todo el estado
     }
 
-    // --- NUEVO MÉTODO: Limpiar el estado de la cotización BUSCADA ---
+    fun resetNavigationTrigger() {
+        _navigationTrigger.value = false
+    }
+
     fun clearQuotationSearchState() {
-        setQuotationResponse(null) // Limpia la respuesta de cotización
-        setErrorMessage(null)     // Limpia el mensaje de error
-        setQuotationWasSearched(false) // Restablece el indicador de búsqueda
-        Log.d("QuotationViewModel", "clearQuotationSearchState ejecutado. Estado de búsqueda limpio.")
+        _quotationResponse.value = null
+        _errorMessage.value = null
     }
 }
 
 fun Double.roundToTwoDecimals(): Double {
     return (this * 100).roundToInt() / 100.0
 }
+

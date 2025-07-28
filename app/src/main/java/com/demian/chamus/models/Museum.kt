@@ -59,11 +59,65 @@ data class CotizacionGrupalRequest(
 )
 
 data class CotizacionGrupalResponse(
-    val message: String,
-    val unique_id: String,
-    val cotizacion: CotizacionDetalle?
-)
+    val message: String? = null,
+    val unique_id: String? = null,
+    val cotizacion: CotizacionDetalle? = null,
 
+    // Campos directos de la respuesta API
+    val id: Int? = null,
+    val museum_id: Int? = null,
+    val appointment_date: String? = null,
+    val start_hour: String? = null,
+    val end_hour: String? = null,
+    val total_people: Int? = null,
+    val total_people_discount: Int? = null,
+    @SerializedName("total_people_whitout_discount")
+    val totalPeopleWithoutDiscount: Int? = null,
+    val total_infants: Int? = null,
+    @SerializedName("total_whit_discount")
+    val totalWithDiscount: String? = null,
+    @SerializedName("total_whitout_discount")
+    val totalWithoutDiscount: String? = null,
+    val price_total: String? = null,
+    @SerializedName("created_at")
+    val createdAt: String? = null,
+    @SerializedName("updated_at")
+    val updatedAt: String? = null,
+    val museum: Museum? = null,
+    @SerializedName("museum_name")
+    val museumName: String? = null
+) {
+    fun getEffectiveCotizacion(): CotizacionDetalle? {
+        return cotizacion ?: if (id != null) {
+            CotizacionDetalle(
+                id = id,
+                unique_id = unique_id ?: "",
+                museum_id = museum_id ?: 0,
+                museum = museum?.let {
+                    MuseumBrief(
+                        id = it.id,
+                        nombre = it.nombre
+                    )
+                },
+                appointment_date = appointment_date ?: "",
+                start_hour = start_hour ?: "",
+                end_hour = end_hour ?: "",
+                total_people = total_people ?: 0,
+                total_people_discount = total_people_discount ?: 0,
+                totalPeopleWithoutDiscount = totalPeopleWithoutDiscount ?: 0,
+                total_infants = total_infants ?: 0,
+                totalWithDiscount = totalWithDiscount?.toDoubleOrNull() ?: 0.0,
+                totalWithoutDiscount = totalWithoutDiscount?.toDoubleOrNull() ?: 0.0,
+                price_total = price_total?.toDoubleOrNull() ?: 0.0,
+                status = "active",
+                createdAt = createdAt,
+                updatedAt = updatedAt
+            )
+        } else {
+            null
+        }
+    }
+}
 
 data class CotizacionDetalle(
     val id: Int,
@@ -93,7 +147,7 @@ data class CotizacionDetalle(
 
 data class MuseumBrief(
     val id: Int,
-    val nombre: String
+    val nombre: String? = "Museo"
 )
 
 data class DiscountedPeopleGroup(

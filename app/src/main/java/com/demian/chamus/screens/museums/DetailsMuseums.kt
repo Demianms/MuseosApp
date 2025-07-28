@@ -1,14 +1,38 @@
 package com.demian.chamus.screens.museums
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -16,9 +40,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import android.util.Log
-import androidx.compose.foundation.text.KeyboardOptions
-
 import com.demian.chamus.models.Museum
 import com.demian.chamus.screens.museums.componentsDetailMuseum.MuseumCategoriesSection
 import com.demian.chamus.screens.museums.componentsDetailMuseum.MuseumDescriptionSection
@@ -30,8 +51,6 @@ import com.demian.chamus.screens.museums.componentsDetailMuseum.MuseumMoreInfoSe
 import com.demian.chamus.screens.museums.componentsDetailMuseum.RoomCard
 import com.demian.chamus.viewmodel.MuseumViewModel
 import com.demian.chamus.viewmodel.QuotationViewModel
-// No necesitas importar SharedQuotationViewModel, ya lo eliminamos
-// import com.demian.chamus.viewmodel.SharedQuotationViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,7 +59,7 @@ fun DetailsMuseums(
     museumId: Int,
     navController: NavController,
     viewModel: MuseumViewModel = viewModel(),
-    quotationViewModel: QuotationViewModel = viewModel()  // Asegúrate que este parámetro esté presente
+    quotationViewModel: QuotationViewModel = viewModel()
 ) {
     LaunchedEffect(museumId) {
         Log.d("DetailsMuseums", "Cargando detalles del museo con ID: $museumId")
@@ -53,24 +72,22 @@ fun DetailsMuseums(
 
     val quotationIsLoading by quotationViewModel.isLoading.collectAsState()
     val quotationErrorMessage by quotationViewModel.errorMessage.collectAsState()
-    val quotationResponse by quotationViewModel.quotationResponse.collectAsState() // Observando el StateFlow del QuotationViewModel
+    val quotationResponse by quotationViewModel.quotationResponse.collectAsState()
 
-    // *** CAMBIO CRUCIAL AQUÍ: NAVEGAR A LA NUEVA PANTALLA ***
-    // Si quotationResponse se actualiza con una respuesta válida (después de fetchQuotationById), navega.
-    LaunchedEffect(quotationResponse) {
-        if (quotationResponse != null && quotationViewModel.wasQuotationSearched.value) { // Agrega un indicador para saber si fue búsqueda
-            Log.d("DetailsMuseums", "Cotización encontrada por ID: ${quotationResponse!!.unique_id}. Navegando a SearchedQuotationDisplayScreen...")
-            // --- CAMBIO CLAVE 2: YA NO NECESITAS ASIGNAR A sharedViewModel.lastQuotationResponse ---
-            // sharedViewModel.lastQuotationResponse = quotationResponse // Eliminar esta línea
+    val shouldNavigate by quotationViewModel.navigationTrigger.collectAsState()
+
+    LaunchedEffect(shouldNavigate) {
+        if (shouldNavigate) {
+            Log.d("Navigation", "Navegando a searched_quotation_display_screen")
+            Log.d("Navigation", "shouldNavigate value: $shouldNavigate")
+            Log.d("Navigation", "Current back stack: ${navController.currentBackStackEntry?.destination?.route}")
             navController.navigate("searched_quotation_display_screen") {
                 launchSingleTop = true
-                // popUpTo("museum_detail/{museumId}") { inclusive = false } // Considera esto para limpiar el back stack si lo necesitas
+                // Limpiar el back stack si es necesario
+                popUpTo("museum_detail/{museumId}") { inclusive = false }
             }
-            // Después de navegar, limpia el estado de búsqueda en el ViewModel para evitar re-navegaciones
-            quotationViewModel.clearQuotationSearchState() // --- NUEVO MÉTODO A AGREGAR ---
+            quotationViewModel.resetNavigationTrigger()
         }
-        // La condición 'else if (false)' no tiene sentido, la eliminamos.
-        // Si quotationResponse es null y errorMessage no es null, se mostrará el mensaje de error en la UI.
     }
 
     Scaffold(
@@ -101,8 +118,6 @@ fun DetailsMuseums(
                 navController = navController,
                 museumId = museumId,
                 quotationViewModel = quotationViewModel,
-                // --- CAMBIO CLAVE 3: ELIMINAR sharedViewModel de la llamada ---
-                // sharedViewModel = sharedViewModel,
                 quotationIsLoading = quotationIsLoading,
                 quotationErrorMessage = quotationErrorMessage
             )
@@ -118,8 +133,6 @@ fun MuseumDetailContent(
     navController: NavController,
     museumId: Int,
     quotationViewModel: QuotationViewModel,
-    // --- CAMBIO CLAVE 4: ELIMINAR sharedViewModel de los parámetros ---
-    // sharedViewModel: SharedQuotationViewModel,
     quotationIsLoading: Boolean,
     quotationErrorMessage: String?
 ) {
@@ -150,58 +163,56 @@ fun MuseumDetailContent(
         // Sección para buscar cotización por ID
         item {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
             ) {
                 Text(
                     text = "Buscar Cotización Existente",
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    fontWeight = FontWeight.Bold
                 )
+
+                Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedTextField(
                     value = quotationIdInput,
                     onValueChange = { quotationIdInput = it },
-                    label = { Text("ID de la Cotización") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                    modifier = Modifier.fillMaxWidth()
+                    label = { Text("ID de Cotización") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
                 )
+
                 Spacer(modifier = Modifier.height(8.dp))
+
                 Button(
                     onClick = {
                         if (quotationIdInput.isNotBlank()) {
-                            Log.d("MuseumDetailContent", "Iniciando búsqueda con ID: $quotationIdInput")
                             scope.launch {
-                                // --- CAMBIO CLAVE 5: LLAMAR A fetchQuotationById directamente y marcar que fue una búsqueda ---
-                                quotationViewModel.fetchQuotationById(quotationIdInput)
-                                quotationViewModel.setQuotationWasSearched(true) // Establece el indicador
+                                quotationViewModel.fetchQuotationById(quotationIdInput.trim())
                             }
-                            quotationViewModel.setErrorMessage(null) // Limpiar errores anteriores al buscar
                         } else {
-                            quotationViewModel.setErrorMessage("Por favor, introduce un ID de cotización.")
+                            quotationViewModel.setErrorMessage("Ingrese un ID válido")
                         }
                     },
                     enabled = !quotationIsLoading,
                     modifier = Modifier.fillMaxWidth()
-                ) { Text(if (quotationIsLoading) "Buscando..." else "Buscar Cotización") }
+                ) {
+                    Text(if (quotationIsLoading) "Buscando..." else "Buscar Cotización")
+                }
 
                 if (quotationIsLoading) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                 }
+
                 quotationErrorMessage?.let { error ->
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = error,
                         color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(24.dp))
         }
 
         if (museum.rooms.isNotEmpty()) {

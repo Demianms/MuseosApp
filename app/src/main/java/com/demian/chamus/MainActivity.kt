@@ -147,7 +147,6 @@ fun AppNavigation(activityViewModelStoreOwner: ComponentActivity) {
         composable("searched_quotation_display_screen") {
             SearchedQuotationDisplayScreen(
                 navController = navController,
-                // CORRECCIÓN: De nuevo, asumo que el parámetro se llama 'quotationViewModel'
                 quotationViewModel = quotationViewModel
             )
         }
