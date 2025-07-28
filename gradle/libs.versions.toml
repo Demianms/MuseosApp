@@ -22,6 +22,7 @@ lifecycleRuntimeKtxVersion = "2.8.6"
 loggingInterceptor = "4.11.0"
 loggingInterceptorVersion = "5.0.0-alpha.14"
 mapsCompose = "2.11.4"
+materialIconsExtended = "<version>"
 navigationCompose = "2.9.0"
 navigationComposeJvmstubs = "2.9.0"
 playServicesMaps = "18.1.0"
@@ -34,6 +35,7 @@ androidx-constraintlayout-compose = { module = "androidx.constraintlayout:constr
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx-v286 = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtxVersion" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtxVersion" }
+androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-navigation-compose-v277 = { module = "androidx.navigation:navigation-compose", version.ref = "androidxNavigationCompose" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }

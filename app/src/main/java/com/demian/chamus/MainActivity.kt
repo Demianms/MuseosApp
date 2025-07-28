@@ -20,12 +20,16 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.demian.chamus.screens.QuotationDetailsScreen
+import com.demian.chamus.screens.QuotationScreen
+import com.demian.chamus.screens.SearchedQuotationDisplayScreen
 import com.demian.chamus.screens.museums.DetailsMuseums
 import com.demian.chamus.screens.museums.DetailsRoom
 import com.demian.chamus.screens.museums.ListMuseumsScreen
 import com.demian.chamus.screens.splash.SplashScreen
 import com.demian.chamus.ui.theme.ChamusTheme
 import com.demian.chamus.viewmodel.MuseumViewModel
+import com.demian.chamus.viewmodel.QuotationViewModel // Importa QuotationViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,7 +40,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation()
+                    AppNavigation(activityViewModelStoreOwner = this)
                 }
             }
         }
@@ -44,9 +48,14 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(activityViewModelStoreOwner: ComponentActivity) {
     val navController = rememberNavController()
-    val viewModel: MuseumViewModel = viewModel()
+    val museumViewModel: MuseumViewModel = viewModel()
+
+    // Inicializa QuotationViewModel aquí. Esta es la instancia compartida.
+    val quotationViewModel: QuotationViewModel = viewModel(
+        viewModelStoreOwner = activityViewModelStoreOwner
+    )
 
     NavHost(
         navController = navController,
@@ -65,7 +74,12 @@ fun AppNavigation() {
             val museumId = backStackEntry.arguments?.getInt("museumId") ?: 0
             DetailsMuseums(
                 museumId = museumId,
-                navController = navController
+                navController = navController,
+                // CORRECCIÓN: Si el parámetro en DetailsMuseums se llama 'quotationViewModel',
+                // y la variable local también, basta con poner el nombre de la variable.
+                // Si el parámetro se llama diferente (ej. 'viewModel'), entonces sería 'viewModel = quotationViewModel'.
+                // Asumo que se llama 'quotationViewModel' en DetailsMuseums también.
+                quotationViewModel = quotationViewModel
             )
         }
         composable(
@@ -78,12 +92,11 @@ fun AppNavigation() {
             val roomId = backStackEntry.arguments?.getInt("roomId") ?: 0
             val museumId = backStackEntry.arguments?.getInt("museumId") ?: 0
 
-            // Cargar los detalles del museo primero
             LaunchedEffect(museumId) {
-                viewModel.loadMuseumDetails(museumId)
+                museumViewModel.loadMuseumDetails(museumId)
             }
 
-            val selectedMuseum by viewModel.selectedMuseum.collectAsState()
+            val selectedMuseum by museumViewModel.selectedMuseum.collectAsState()
             val room = selectedMuseum?.rooms?.find { it.id == roomId }
 
             if (room != null) {
@@ -105,6 +118,38 @@ fun AppNavigation() {
                     )
                 }
             }
+        }
+        composable(
+            "quotation_screen?museumId={museumId}",
+            arguments = listOf(navArgument("museumId") {
+                type = NavType.IntType
+                defaultValue = -1
+            })
+        ) { backStackEntry ->
+            val museumId = backStackEntry.arguments?.getInt("museumId")
+            val initialMuseumId = if (museumId != null && museumId != -1) museumId else null
+            QuotationScreen(
+                navController = navController,
+                initialMuseumId = initialMuseumId,
+                quotationViewModel = quotationViewModel
+            )
+        }
+
+        composable("quotation_details_screen") {
+            val currentQuotation by quotationViewModel.quotationResponse.collectAsState()
+
+            QuotationDetailsScreen(
+                navController = navController,
+                quotationResponse = currentQuotation
+            )
+        }
+        // Ruta para la cotización buscada
+        composable("searched_quotation_display_screen") {
+            SearchedQuotationDisplayScreen(
+                navController = navController,
+                // CORRECCIÓN: De nuevo, asumo que el parámetro se llama 'quotationViewModel'
+                quotationViewModel = quotationViewModel
+            )
         }
     }
 }

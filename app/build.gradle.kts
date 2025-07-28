@@ -1,6 +1,5 @@
 // Agrega estos imports al inicio del archivo
 import java.util.Properties
-import java.io.InputStreamReader
 
 
 val localProperties = Properties().apply {
@@ -91,6 +90,8 @@ dependencies {
 
     implementation (libs.maps.compose)
     implementation (libs.play.services.maps)
+
+    implementation(libs.androidx.material.icons.extended)
 
     implementation (libs.gson)
 
